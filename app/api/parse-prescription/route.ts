@@ -41,9 +41,9 @@ export async function POST(req: Request) {
       return Response.json({ error: "No transcript provided" }, { status: 400 })
     }
 
-    console.log("[v0] Calling OpenAI to parse prescription...")
+    console.log("[v0] Calling AI to parse prescription...")
     const { output } = await generateText({
-      model: "openai/gpt-4o",
+      model: "claude-opus-4-7",
       output: Output.object({
         schema: prescriptionSchema,
       }),
@@ -51,25 +51,25 @@ export async function POST(req: Request) {
         {
           role: "system",
           content: `You are a medical prescription parser. Extract structured prescription data from the doctor's voice transcript.
-          
-Parse the following information:
-- Patient details (name, age, sex)
-- Vital signs (height, weight, temperature, blood pressure, pulse, SpO2)
-- Chief complaints with duration
-- Chronic diseases
-- Allergies
-- Investigations/tests
-- Diagnosis
-- Medicines with full details (name, dosage, frequency like "1+0+1", duration like "3 days", instructions)
-- Advice
 
-Common medicine patterns:
-- "Napa 500" = Paracetamol 500mg tablet
-- "1+1+1" = morning + afternoon + night
-- "1+0+1" = morning + night only
-- "SOS" = when needed
+          Parse the following information:
+          - Patient details (name, age, sex)
+          - Vital signs (height, weight, temperature, blood pressure, pulse, SpO2)
+          - Chief complaints with duration
+          - Chronic diseases
+          - Allergies
+          - Investigations/tests
+          - Diagnosis
+          - Medicines with full details (name, dosage, frequency like "1+0+1", duration like "3 days", instructions)
+          - Advice
 
-Be thorough and extract all mentioned information. If something is not mentioned, use empty arrays or null values.`,
+          Common medicine patterns:
+          - "Napa 500" = Paracetamol 500mg tablet
+          - "1+1+1" = morning + afternoon + night
+          - "1+0+1" = morning + night only
+          - "SOS" = when needed
+
+          Be thorough and extract all mentioned information. If something is not mentioned, use empty arrays or null values.`,
         },
         {
           role: "user",
@@ -82,6 +82,11 @@ Be thorough and extract all mentioned information. If something is not mentioned
     return Response.json({ prescription: output })
   } catch (error) {
     console.error("Error parsing prescription:", error)
-    return Response.json({ error: "Failed to parse prescription" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.error("Error details:", errorMessage)
+    return Response.json(
+      { error: "Failed to parse prescription. Please try again." },
+      { status: 500 }
+    )
   }
 }
