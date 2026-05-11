@@ -1,5 +1,5 @@
 import { generateObject } from "ai"
-import { openai } from "@ai-sdk/openai"
+import { azure } from "@ai-sdk/azure"
 import { z } from "zod"
 
 const medicineSchema = z.object({
@@ -38,56 +38,57 @@ const prescriptionSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    return Response.json({
-      prescription: {
-        patientName: "ABC",
-        age: "25",
-        sex: "Male",
-        vitals: {
-          bloodPressure: "120/80",
+    const { transcript } = await req.json()
+
+    if (!transcript?.trim()) {
+      return Response.json(
+        { error: "No transcript provided" },
+        { status: 400 }
+      )
+    }
+
+    const { object } = await generateObject({
+      model: azure("hisl-rx"),
+      schema: prescriptionSchema,
+      messages: [
+        {
+          role: "system",
+          content: `
+You are a medical prescription parser.
+
+Extract structured prescription data from a doctor's voice transcript.
+
+Parse:
+- Patient details (name, age, sex)
+- Vital signs
+- Chief complaints
+- Chronic diseases
+- Allergies
+- Investigations/tests
+- Diagnosis
+- Medicines with dosage, frequency, duration, instructions
+- Advice
+
+Medicine patterns:
+- 1+1+1 = morning + afternoon + night
+- 1+0+1 = morning + night
+- SOS = when needed
+
+If missing, use null or empty arrays.
+          `,
         },
-        chiefComplaints: ["Cough"],
-        chronicDiseases: [],
-        allergies: [],
-        investigations: ["CBC"],
-        diagnosis: ["Viral fever"],
-        medicines: [
-          {
-            name: "Napa 500",
-            dosage: "500mg",
-            frequency: "1+1+1",
-            duration: "3 days",
-            instructions: "After meal",
-          },
-        ],
-        advice: ["Take rest"],
-      },
+        {
+          role: "user",
+          content: transcript,
+        },
+      ],
     })
+
+    return Response.json({ prescription: object })
   } catch (error) {
-    return Response.json({
-      prescription: {
-        patientName: "ABC",
-        age: "25",
-        sex: "Male",
-        vitals: {
-          bloodPressure: "120/80",
-        },
-        chiefComplaints: ["Cough"],
-        chronicDiseases: [],
-        allergies: [],
-        investigations: ["CBC"],
-        diagnosis: ["Viral fever"],
-        medicines: [
-          {
-            name: "Napa 500",
-            dosage: "500mg",
-            frequency: "1+1+1",
-            duration: "3 days",
-            instructions: "After meal",
-          },
-        ],
-        advice: ["Take rest"],
-      },
-    })
+    return Response.json(
+      { error: "Failed to parse prescription. Please try again." },
+      { status: 500 }
+    )
   }
 }
