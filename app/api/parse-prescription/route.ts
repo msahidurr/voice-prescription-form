@@ -51,25 +51,25 @@ export async function POST(req: Request) {
         {
           role: "system",
           content: `You are a medical prescription parser. Extract structured prescription data from the doctor's voice transcript.
-          
-Parse the following information:
-- Patient details (name, age, sex)
-- Vital signs (height, weight, temperature, blood pressure, pulse, SpO2)
-- Chief complaints with duration
-- Chronic diseases
-- Allergies
-- Investigations/tests
-- Diagnosis
-- Medicines with full details (name, dosage, frequency like "1+0+1", duration like "3 days", instructions)
-- Advice
 
-Common medicine patterns:
-- "Napa 500" = Paracetamol 500mg tablet
-- "1+1+1" = morning + afternoon + night
-- "1+0+1" = morning + night only
-- "SOS" = when needed
+          Parse the following information:
+          - Patient details (name, age, sex)
+          - Vital signs (height, weight, temperature, blood pressure, pulse, SpO2)
+          - Chief complaints with duration
+          - Chronic diseases
+          - Allergies
+          - Investigations/tests
+          - Diagnosis
+          - Medicines with full details (name, dosage, frequency like "1+0+1", duration like "3 days", instructions)
+          - Advice
 
-Be thorough and extract all mentioned information. If something is not mentioned, use empty arrays or null values.`,
+          Common medicine patterns:
+          - "Napa 500" = Paracetamol 500mg tablet
+          - "1+1+1" = morning + afternoon + night
+          - "1+0+1" = morning + night only
+          - "SOS" = when needed
+
+          Be thorough and extract all mentioned information. If something is not mentioned, use empty arrays or null values.`,
         },
         {
           role: "user",
