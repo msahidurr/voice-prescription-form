@@ -41,9 +41,9 @@ export async function POST(req: Request) {
       return Response.json({ error: "No transcript provided" }, { status: 400 })
     }
 
-    console.log("[v0] Calling OpenAI to parse prescription...")
+    console.log("[v0] Calling AI to parse prescription...")
     const { output } = await generateText({
-      model: "openai/gpt-4o",
+      model: "anthropic/claude-opus-4.6",
       output: Output.object({
         schema: prescriptionSchema,
       }),
@@ -82,6 +82,11 @@ Be thorough and extract all mentioned information. If something is not mentioned
     return Response.json({ prescription: output })
   } catch (error) {
     console.error("Error parsing prescription:", error)
-    return Response.json({ error: "Failed to parse prescription" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.error("Error details:", errorMessage)
+    return Response.json(
+      { error: "Failed to parse prescription. Please try again." },
+      { status: 500 }
+    )
   }
 }
