@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     console.log("[v0] Calling AI to parse prescription...")
     const { output } = await generateText({
-      model: "anthropic/claude-opus-4.6",
+      model: "claude-opus-4-7",
       output: Output.object({
         schema: prescriptionSchema,
       }),
